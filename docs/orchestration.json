@@ -1,0 +1,25 @@
+{
+  "project": "threadhelp",
+  "classification": "ship/incubate",
+  "pipeline": [
+    "rate_limit",
+    "validate_request",
+    "origin_check",
+    "redact_obvious_secrets",
+    "generate_reference_id",
+    "dispatch_slack_fixture",
+    "dispatch_email_fixture"
+  ],
+  "adapters": {
+    "slack": {
+      "mode": "fixture-first",
+      "liveApiCalls": false,
+      "threadEvents": ["operator_reply", "internal_note", "assigned", "resolved"]
+    },
+    "email": {
+      "mode": "fixture-first",
+      "liveProviderCalls": false
+    }
+  },
+  "gates": ["npm test", "npm run check", "npm run build", "bash scripts/validate.sh", "npm run release:check"]
+}

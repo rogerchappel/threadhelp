@@ -1,0 +1,10 @@
+{
+  "project": "threadhelp-demo",
+  "origin": "https://app.example.com",
+  "category": "bug",
+  "subject": "Export failed after upgrade",
+  "message": "CSV export fails with status 500. token=super-secret-value",
+  "user": { "id": "user_123", "email": "customer@example.com", "name": "Casey Customer" },
+  "context": { "app": "example-saas", "url": "https://app.example.com/reports", "version": "2026.05.08", "plan": "pro" },
+  "metadata": { "traceId": "trace_123" }
+}

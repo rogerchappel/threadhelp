@@ -1,0 +1,2 @@
+import type { DispatchResult, SupportAdapter, SupportRequest } from "./types.js";
+export async function dispatchSupportRequest(request: SupportRequest, adapters: SupportAdapter[]): Promise<DispatchResult[]> { return Promise.all(adapters.map(async (adapter) => { try { return await adapter.dispatch(request); } catch (error) { return { adapter: adapter.name, ok: false, mode: "dry-run", payload: {}, error: error instanceof Error ? error.message : String(error) }; } })); }

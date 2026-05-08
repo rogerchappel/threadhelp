@@ -1,0 +1,59 @@
+{
+  "name": "threadhelp",
+  "version": "0.1.0",
+  "description": "Open-source support intake for SaaS teams, starting with Slack-thread live chat and email fallback.",
+  "type": "module",
+  "bin": {
+    "threadhelp-demo": "./dist/cli/demo.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./adapters/slack": {
+      "types": "./dist/adapters/slack.d.ts",
+      "import": "./dist/adapters/slack.js"
+    },
+    "./adapters/email": {
+      "types": "./dist/adapters/email.d.ts",
+      "import": "./dist/adapters/email.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md"
+  ],
+  "scripts": {
+    "check": "npm run typecheck && npm test",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "node --test --import tsx test/*.test.ts",
+    "demo": "tsx src/cli/demo.ts",
+    "package:smoke": "npm pack --dry-run",
+    "release:check": "npm run check && npm run build && npm run package:smoke",
+    "smoke": "npm run demo && npm run package:smoke"
+  },
+  "keywords": [
+    "support",
+    "slack",
+    "helpdesk",
+    "live-chat",
+    "widget",
+    "saas"
+  ],
+  "author": "Roger Chappel",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
