@@ -1,0 +1,4 @@
+export interface RateLimitOptions { limit: number; windowMs: number; now?: number; }
+export interface RateLimitDecision { allowed: boolean; remaining: number; resetAt: number; }
+interface Bucket { count: number; resetAt: number; }
+export class MemoryRateLimiter { private readonly buckets = new Map<string, Bucket>(); check(key: string, options: RateLimitOptions): RateLimitDecision { const now = options.now ?? Date.now(); const existing = this.buckets.get(key); const bucket = !existing || existing.resetAt <= now ? { count: 0, resetAt: now + options.windowMs } : existing; if (bucket.count >= options.limit) { this.buckets.set(key, bucket); return { allowed: false, remaining: 0, resetAt: bucket.resetAt }; } bucket.count += 1; this.buckets.set(key, bucket); return { allowed: true, remaining: Math.max(options.limit - bucket.count, 0), resetAt: bucket.resetAt }; } reset(): void { this.buckets.clear(); } }
