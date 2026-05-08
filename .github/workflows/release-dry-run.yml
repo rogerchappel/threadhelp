@@ -1,0 +1,47 @@
+name: Release dry run
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - releasebox.config.json
+      - package.json
+      - package-lock.json
+      - .github/workflows/release*.yml
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  RELEASEBOX_REF: v0.1.0
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install ReleaseBox
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch "$RELEASEBOX_REF" https://github.com/rogerchappel/releasebox.git /tmp/releasebox
+          npm --prefix /tmp/releasebox ci
+          npm --prefix /tmp/releasebox run build
+      - name: ReleaseBox readiness check
+        run: node /tmp/releasebox/bin/releasebox.js check .
+      - name: Run release checks
+        run: npm run release:check
+      - name: Release notes preview
+        run: |
+          node /tmp/releasebox/bin/releasebox.js notes . > release-notes-preview.md
+          cat release-notes-preview.md
+      - name: Publish release notes summary
+        run: cat release-notes-preview.md >> "$GITHUB_STEP_SUMMARY"
