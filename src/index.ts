@@ -3,6 +3,7 @@ export { EmailAdapter, formatSupportEmail } from "./adapters/email.js";
 export { SlackAdapter, formatSlackMessage, mapSlackThreadEvent } from "./adapters/slack.js";
 export { MemoryRateLimiter } from "./rateLimit.js";
 export { createSupportRequestHandler } from "./server.js";
+export { buildWidgetRequest, createThreadHelpClient, installThreadHelp } from "./widget.js";
 export { createReferenceId } from "./ref.js";
 export { isOriginAllowed } from "./origin.js";
 export { redactObject, redactText } from "./redact.js";

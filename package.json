@@ -20,6 +20,14 @@
     "./adapters/email": {
       "types": "./dist/adapters/email.d.ts",
       "import": "./dist/adapters/email.js"
+    },
+    "./widget": {
+      "types": "./dist/widget.d.ts",
+      "import": "./dist/widget.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
     }
   },
   "files": [
