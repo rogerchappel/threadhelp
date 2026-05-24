@@ -14,6 +14,30 @@ test("rejects invalid project, category, message and origin", () => {
   if (!result.ok) assert.deepEqual(result.errors, ["project must match configured project policy", "origin is not allowed for this project", "subject is required", "message is required"]);
 });
 
+test("rejects honeypot spam and unsafe attachments", () => {
+  const result = validateSupportRequest(
+    {
+      project: "p",
+      origin: "https://app.example.com",
+      category: "bug",
+      subject: "Bad attachment",
+      message: "See attached",
+      honeypot: "bot-filled-field",
+      attachments: [{ name: "dump.exe", type: "application/x-msdownload", size: 12_000_000 }]
+    },
+    { project: "p", allowedOrigins: ["https://app.example.com"], maxAttachmentBytes: 1_000_000 }
+  );
+
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.deepEqual(result.errors, [
+      "honeypot must be empty",
+      "attachment type is not allowed: application/x-msdownload",
+      "attachment dump.exe exceeds 1000000 bytes"
+    ]);
+  }
+});
+
 test("origin helper supports exact and wildcard subdomains", () => {
   assert.equal(isOriginAllowed("https://a.example.com", ["*.example.com"]), true);
   assert.equal(isOriginAllowed("https://example.com", ["*.example.com"]), false);
