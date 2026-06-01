@@ -59,3 +59,30 @@ test("installThreadHelp exposes the command API on a target object", () => {
 
   assert.equal(typeof api, "function");
 });
+
+test("default widget transport returns submit errors for failed endpoints", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    ({
+      ok: false,
+      status: 503,
+      statusText: "Service Unavailable"
+    }) as Response;
+
+  try {
+    const client = createThreadHelpClient();
+    let errorPayload: unknown;
+    client.on("error", (payload) => {
+      errorPayload = payload;
+    });
+    client.boot({ project: "p", endpoint: "/api/threadhelp", origin: "https://app.example.com" });
+
+    const result = await client.submit({ category: "question", subject: "Help", message: "Endpoint down" });
+
+    assert.equal(result.ok, false);
+    assert.deepEqual(result.errors, ["ThreadHelp endpoint returned 503: Service Unavailable"]);
+    assert.deepEqual(errorPayload, result);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
