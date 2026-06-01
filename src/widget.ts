@@ -155,7 +155,16 @@ async function fetchTransport(endpoint: string, payload: SupportRequestInput): P
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload)
   });
-  return (await response.json()) as ThreadHelpSubmitResult;
+  if (!response.ok) {
+    const message = response.statusText ? `ThreadHelp endpoint returned ${response.status}: ${response.statusText}` : `ThreadHelp endpoint returned ${response.status}`;
+    return { ok: false, errors: [message] };
+  }
+
+  try {
+    return (await response.json()) as ThreadHelpSubmitResult;
+  } catch {
+    return { ok: false, errors: ["ThreadHelp endpoint returned invalid JSON."] };
+  }
 }
 
 function currentOrigin(): string {
