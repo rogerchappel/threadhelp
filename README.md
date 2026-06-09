@@ -126,3 +126,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 MIT
+
+## Development
+
+Run the same checks locally before opening a PR:
+
+- `npm run check` - npm run typecheck && npm test
+- `npm run typecheck` - tsc --noEmit
+- `npm run build` - tsc -p tsconfig.build.json
+- `npm test` - node --test --import tsx test/*.test.ts
+- `npm run smoke` - npm run demo && npm run package:smoke
+- `npm run package:smoke` - npm pack --dry-run
+- `npm run release:check` - npm run check && npm run build && npm run package:smoke
