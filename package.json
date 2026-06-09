@@ -34,7 +34,9 @@
     "dist",
     "README.md",
     "SECURITY.md",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "check": "npm run typecheck && npm test",
