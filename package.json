@@ -63,5 +63,13 @@
     "@types/node": "^25.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/threadhelp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/threadhelp/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/threadhelp#readme"
 }
