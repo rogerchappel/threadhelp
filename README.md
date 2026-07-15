@@ -123,6 +123,8 @@ See [SECURITY.md](SECURITY.md). Do not put Slack, email, or other provider token
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+Use [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) before tagging or
+publishing a release candidate.
 
 ## License
 
