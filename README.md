@@ -123,6 +123,13 @@ See [SECURITY.md](SECURITY.md). Do not put Slack, email, or other provider token
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Limitations and Safety
+
+- Open-source support intake for SaaS teams, starting with Slack-thread live chat and email fallback; it is intended for local, reviewable developer workflows rather than unattended production automation.
+- Review generated output before using it in commits, releases, issue updates, or connector actions.
+- Avoid passing secrets, private customer data, or unredacted logs through fixtures, examples, or command output.
+- Treat warnings and non-zero exits from `threadhelp-demo` as review signals, then rerun the documented verification command after changes.
+
 ## License
 
 MIT
