@@ -37,6 +37,7 @@
     "CONTRIBUTING.md",
     "LICENSE",
     "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
     "RELEASE_NOTES.md"
   ],
   "scripts": {
@@ -45,8 +46,9 @@
     "build": "tsc -p tsconfig.build.json",
     "test": "node --test --import tsx test/*.test.ts",
     "demo": "tsx src/cli/demo.ts",
-    "package:smoke": "npm pack --dry-run",
-    "release:check": "npm run check && npm run build && npm run package:smoke",
+    "package:smoke": "npm run build && node scripts/package-smoke.mjs",
+    "release:readiness": "node scripts/validate-release-readiness.mjs",
+    "release:check": "npm run release:readiness && npm run check && npm run build && npm run package:smoke",
     "smoke": "npm run demo && npm run package:smoke"
   },
   "keywords": [
