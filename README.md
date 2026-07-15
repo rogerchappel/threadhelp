@@ -101,6 +101,7 @@ npm test
 npm run check
 npm run build
 bash scripts/validate.sh
+npm run release:readiness
 npm run release:check
 ```
 
@@ -136,5 +137,10 @@ Run the same checks locally before opening a PR:
 - `npm run build` - tsc -p tsconfig.build.json
 - `npm test` - node --test --import tsx test/*.test.ts
 - `npm run smoke` - npm run demo && npm run package:smoke
-- `npm run package:smoke` - npm pack --dry-run
-- `npm run release:check` - npm run check && npm run build && npm run package:smoke
+- `npm run package:smoke` - build and verify required npm tarball files
+- `npm run release:readiness` - verify metadata, exports, package allowlist, support docs, CI, and package-smoke wiring
+- `npm run release:check` - npm run release:readiness && npm run check && npm run build && npm run package:smoke
+
+The npm package includes compiled runtime files plus support documents needed
+for release review: `README.md`, `SECURITY.md`, `CONTRIBUTING.md`,
+`CODE_OF_CONDUCT.md`, `LICENSE`, `CHANGELOG.md`, and `RELEASE_NOTES.md`.
