@@ -86,3 +86,35 @@ test("default widget transport returns submit errors for failed endpoints", asyn
     globalThis.fetch = originalFetch;
   }
 });
+
+test("widget client converts transport rejection into an error result and event", async () => {
+  const client = createThreadHelpClient(async () => {
+    throw new TypeError("fetch failed");
+  });
+  let errorPayload: unknown;
+  client.on("error", (payload) => {
+    errorPayload = payload;
+  });
+  client.boot({ project: "p", endpoint: "/api/threadhelp", origin: "https://app.example.com" });
+
+  const result = await client.submit({ category: "question", subject: "Help", message: "Endpoint down" });
+
+  assert.deepEqual(result, { ok: false, errors: ["ThreadHelp request failed: fetch failed"] });
+  assert.deepEqual(errorPayload, result);
+});
+
+test("default widget transport retains invalid-JSON error behavior", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("not JSON", { status: 200 });
+
+  try {
+    const client = createThreadHelpClient();
+    client.boot({ project: "p", endpoint: "/api/threadhelp", origin: "https://app.example.com" });
+
+    const result = await client.submit({ category: "question", subject: "Help", message: "Bad response" });
+
+    assert.deepEqual(result, { ok: false, errors: ["ThreadHelp endpoint returned invalid JSON."] });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

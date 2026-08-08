@@ -58,3 +58,36 @@ test("server handler rejects disallowed origins before dispatch", async () => {
   assert.equal(payload.ok, false);
   assert.deepEqual(payload.errors, ["origin is not allowed for this project"]);
 });
+
+test("server handler returns a deterministic 400 for non-array attachments", async () => {
+  const handler = createSupportRequestHandler({
+    policy: { project: "p", allowedOrigins: ["https://app.example.com"] },
+    adapters: []
+  });
+  const response = await handler(new Request("https://support.example.com/api/threadhelp", {
+    method: "POST",
+    headers: { origin: "https://app.example.com", "content-type": "application/json" },
+    body: JSON.stringify({ ...body, attachments: {} })
+  }));
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { ok: false, errors: ["attachments must be an array when provided"] });
+});
+
+test("server handler returns a deterministic 400 for invalid nested values", async () => {
+  const handler = createSupportRequestHandler({
+    policy: { project: "p", allowedOrigins: ["https://app.example.com"] },
+    adapters: []
+  });
+  const response = await handler(new Request("https://support.example.com/api/threadhelp", {
+    method: "POST",
+    headers: { origin: "https://app.example.com", "content-type": "application/json" },
+    body: JSON.stringify({ ...body, user: { email: 42 }, context: [] })
+  }));
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    errors: ["user.email must be a string when provided", "context must be an object when provided"]
+  });
+});

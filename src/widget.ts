@@ -90,7 +90,13 @@ export function createThreadHelpClient(transport: ThreadHelpTransport = fetchTra
     async submit(input) {
       if (!state.options) throw new Error("ThreadHelp must be booted before submit");
       const payload = buildWidgetRequest(state.options, { ...state.draft, ...input });
-      const result = await transport(state.options.endpoint, payload);
+      let result: ThreadHelpSubmitResult;
+      try {
+        result = await transport(state.options.endpoint, payload);
+      } catch (error) {
+        const detail = error instanceof Error && error.message ? `: ${error.message}` : ".";
+        result = { ok: false, errors: [`ThreadHelp request failed${detail}`] };
+      }
       emit(result.ok ? "submitted" : "error", result);
       return result;
     },
