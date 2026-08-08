@@ -83,6 +83,12 @@ if (validated.ok) {
 }
 ```
 
+### Server and widget error contracts
+
+`createSupportRequestHandler` treats the request body as untrusted runtime input. Invalid JSON returns a `400` JSON response with `errors: ["request body must be valid JSON"]`; valid JSON with the wrong top-level or nested shape also returns `400` with deterministic field errors. The handler does not reject its promise for client input errors.
+
+`createThreadHelpClient().submit()` resolves transport and network failures as `{ ok: false, errors: [...] }`, emits the same result through the `error` event, and does not reject for those failures. Non-success HTTP responses and invalid JSON responses follow the same result-and-event contract.
+
 ## Slack-thread live chat path
 
 The Slack adapter currently formats the initial support request and maps thread events such as:
