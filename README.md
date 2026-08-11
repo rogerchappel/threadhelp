@@ -19,9 +19,21 @@ It is **not a full helpdesk yet**. There is no hosted inbox, ticket UI, billing 
 
 ## Install
 
+ThreadHelp is not currently published to the npm registry. Build and install the
+same package tarball that tag releases attach to GitHub Releases:
+
 ```sh
-npm install threadhelp
+git clone https://github.com/rogerchappel/threadhelp.git
+cd threadhelp
+npm ci
+npm run build
+npm pack
+npm install ./threadhelp-0.1.0.tgz
 ```
+
+The tarball name follows the `name` and `version` fields in `package.json`. A
+tagged release produces this artifact with `npm pack`; npm registry installation
+will only be documented after the release workflow publishes there.
 
 For local development:
 
