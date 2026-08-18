@@ -38,6 +38,23 @@ test("rejects honeypot spam and unsafe attachments", () => {
   }
 });
 
+test("rejects zero-byte attachments as non-positive", () => {
+  const result = validateSupportRequest(
+    {
+      project: "p",
+      origin: "https://app.example.com",
+      category: "bug",
+      subject: "Empty attachment",
+      message: "See attached",
+      attachments: [{ name: "empty.txt", type: "text/plain", size: 0 }]
+    },
+    { project: "p", allowedOrigins: ["https://app.example.com"] }
+  );
+
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.deepEqual(result.errors, ["attachment.size must be a positive integer"]);
+});
+
 test("origin helper supports exact and wildcard subdomains", () => {
   assert.equal(isOriginAllowed("https://a.example.com", ["*.example.com"]), true);
   assert.equal(isOriginAllowed("https://example.com", ["*.example.com"]), false);
