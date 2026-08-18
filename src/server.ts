@@ -40,6 +40,9 @@ export function createSupportRequestHandler(options: SupportRequestHandlerOption
     if (!shape.ok) return json({ ok: false, errors: shape.errors }, 400);
     const input = normalizeInput(shape.value, request);
 
+    const validated = validateSupportRequest(input, options.policy);
+    if (!validated.ok) return json({ ok: false, errors: validated.errors }, 400);
+
     if (options.rateLimit) {
       const rateOptions: RateLimitOptions = { ...options.rateLimit };
       const now = options.now?.();
@@ -47,9 +50,6 @@ export function createSupportRequestHandler(options: SupportRequestHandlerOption
       const rateLimit = limiter.check(rateLimitKey(input, request), rateOptions);
       if (!rateLimit.allowed) return json({ ok: false, rateLimit, errors: ["rate limit exceeded"] }, 429);
     }
-
-    const validated = validateSupportRequest(input, options.policy);
-    if (!validated.ok) return json({ ok: false, errors: validated.errors }, 400);
 
     const results = await dispatchSupportRequest(validated.value, options.adapters);
     return json({
