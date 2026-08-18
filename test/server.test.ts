@@ -91,3 +91,31 @@ test("server handler returns a deterministic 400 for invalid nested values", asy
     errors: ["user.email must be a string when provided", "context must be an object when provided"]
   });
 });
+
+test("validation failures do not consume rate-limit quota", async () => {
+  const handler = createSupportRequestHandler({
+    policy: { project: "p", allowedOrigins: ["https://app.example.com"] },
+    adapters: [],
+    limiter: new MemoryRateLimiter(),
+    rateLimit: { limit: 2, windowMs: 60_000 },
+    now: () => 1000
+  });
+  const send = (category: string) => handler(new Request("https://support.example.com/api/threadhelp", {
+    method: "POST",
+    headers: { origin: "https://app.example.com", "content-type": "application/json" },
+    body: JSON.stringify({ ...body, category })
+  }));
+
+  assert.equal((await send("invalid")).status, 400);
+  assert.equal((await send("invalid")).status, 400);
+  assert.equal((await send("bug")).status, 200);
+  assert.equal((await send("bug")).status, 200);
+
+  const limited = await send("bug");
+  assert.equal(limited.status, 429);
+  assert.deepEqual(await limited.json(), {
+    ok: false,
+    rateLimit: { allowed: false, remaining: 0, resetAt: 61000 },
+    errors: ["rate limit exceeded"]
+  });
+});

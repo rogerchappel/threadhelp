@@ -34,7 +34,7 @@ export function validateSupportRequest(input: SupportRequestInput, policy: Proje
   for (const attachment of attachments) {
     if (!attachment.name?.trim()) errors.push("attachment.name is required");
     if (!allowedAttachmentTypes.includes(attachment.type)) errors.push(`attachment type is not allowed: ${attachment.type}`);
-    if (!Number.isInteger(attachment.size) || attachment.size < 0) errors.push("attachment.size must be a positive integer");
+    if (!Number.isInteger(attachment.size) || attachment.size <= 0) errors.push("attachment.size must be a positive integer");
     if (attachment.size > maxAttachmentBytes) errors.push(`attachment ${attachment.name} exceeds ${maxAttachmentBytes} bytes`);
   }
 
