@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { MemoryRateLimiter, createReferenceId, isOriginAllowed, redactText, validateSupportRequest } from "../src/index.js";
+import { MemoryRateLimiter, createReferenceId, dispatchSupportRequest, isOriginAllowed, redactText, validateSupportRequest, type SupportAdapter } from "../src/index.js";
 
 test("validates and redacts support requests", () => {
   const result = validateSupportRequest({ project: "p", origin: "https://app.example.com", category: "bug", subject: " Help ", message: "token=secret", user: { email: "u@example.com" } }, { project: "p", allowedOrigins: ["https://app.example.com"] });
@@ -71,4 +71,34 @@ test("rate limiter resets after window", () => {
 test("reference ids and redaction are useful", () => {
   assert.match(createReferenceId(), /^TH-/);
   assert.equal(redactText("xoxb-1234567890-secret").value, "[REDACTED_SLACK_TOKEN]");
+});
+
+test("dispatch failures preserve the adapter execution mode", async () => {
+  const adapter: SupportAdapter = {
+    name: "production-provider",
+    mode: "live",
+    async dispatch() {
+      throw new Error("provider unavailable");
+    }
+  };
+
+  const results = await dispatchSupportRequest({
+    project: "p",
+    origin: "https://app.example.com",
+    category: "bug",
+    subject: "Help",
+    message: "The provider failed",
+    priority: "normal",
+    createdAt: "2026-08-20T00:00:00.000Z",
+    refId: "TH-FAILMODE",
+    redacted: false
+  }, [adapter]);
+
+  assert.deepEqual(results, [{
+    adapter: "production-provider",
+    ok: false,
+    mode: "live",
+    payload: {},
+    error: "provider unavailable"
+  }]);
 });
