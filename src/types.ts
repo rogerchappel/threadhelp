@@ -62,10 +62,12 @@ export interface ProjectPolicy {
   allowedAttachmentTypes?: string[];
 }
 
+export type DispatchMode = "dry-run" | "fixture" | "live";
+
 export interface DispatchResult {
   adapter: string;
   ok: boolean;
-  mode: "dry-run" | "fixture" | "live";
+  mode: DispatchMode;
   destination?: string;
   reference?: string;
   payload: unknown;
@@ -74,6 +76,7 @@ export interface DispatchResult {
 
 export interface SupportAdapter {
   readonly name: string;
+  readonly mode: DispatchMode;
   dispatch(request: SupportRequest): Promise<DispatchResult>;
 }
 
