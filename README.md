@@ -97,6 +97,8 @@ if (validated.ok) {
 
 ### Server and widget error contracts
 
+`validateSupportRequest()` also treats attachment values as untrusted at runtime, including when JavaScript callers bypass the exported TypeScript types. When `attachments` is present it must be an array, and every item must be a non-array object with a non-empty string `name`, an allowed string `type`, and a positive integer `size`. Malformed attachment containers, items, or fields return `{ ok: false, errors: [...] }`; they do not throw. Valid typed attachments are retained in the validated request.
+
 `dispatchSupportRequest()` resolves each adapter exception as a failed dispatch result instead of rejecting the whole batch. Every `SupportAdapter` declares its execution `mode`; a failure result preserves that mode, the adapter name, and the thrown error text, so a failed live attempt is never reported as a dry run.
 
 `createSupportRequestHandler` treats the request body as untrusted runtime input. Invalid JSON returns a `400` JSON response with `errors: ["request body must be valid JSON"]`; valid JSON with the wrong top-level or nested shape also returns `400` with deterministic field errors. The handler does not reject its promise for client input errors.
