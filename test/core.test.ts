@@ -73,6 +73,12 @@ test("direct validator rejects malformed runtime attachment elements without thr
     const result = validateSupportRequest({ ...base, attachments: [attachment] } as never, policy);
     assert.deepEqual(result, { ok: false, errors: ["attachments[0] must be an object"] });
   }
+
+  const malformedFields = validateSupportRequest({ ...base, attachments: [{ name: 42, type: null, size: "12" }] } as never, policy);
+  assert.deepEqual(malformedFields, {
+    ok: false,
+    errors: ["attachment.name is required", "attachment type is not allowed: null", "attachment.size must be a positive integer"]
+  });
 });
 
 test("direct validator accepts a valid typed attachment", () => {

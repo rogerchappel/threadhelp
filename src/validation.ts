@@ -29,13 +29,26 @@ export function validateSupportRequest(input: SupportRequestInput, policy: Proje
   if (input.user?.email && !/^\S+@\S+\.\S+$/.test(input.user.email)) errors.push("user.email must be a valid email address when provided");
   if (input.honeypot?.trim()) errors.push("honeypot must be empty");
 
-  const attachments = input.attachments ?? [];
-  if (attachments.length > maxAttachments) errors.push(`attachments must include ${maxAttachments} files or fewer`);
-  for (const attachment of attachments) {
-    if (!attachment.name?.trim()) errors.push("attachment.name is required");
-    if (!allowedAttachmentTypes.includes(attachment.type)) errors.push(`attachment type is not allowed: ${attachment.type}`);
-    if (!Number.isInteger(attachment.size) || attachment.size <= 0) errors.push("attachment.size must be a positive integer");
-    if (attachment.size > maxAttachmentBytes) errors.push(`attachment ${attachment.name} exceeds ${maxAttachmentBytes} bytes`);
+  const attachments = input.attachments;
+  if (attachments !== undefined && !Array.isArray(attachments)) {
+    errors.push("attachments must be an array when provided");
+  } else {
+    const attachmentList = attachments ?? [];
+    if (attachmentList.length > maxAttachments) errors.push(`attachments must include ${maxAttachments} files or fewer`);
+    for (const [index, attachment] of attachmentList.entries()) {
+      if (typeof attachment !== "object" || attachment === null || Array.isArray(attachment)) {
+        errors.push(`attachments[${index}] must be an object`);
+        continue;
+      }
+      if (typeof attachment.name !== "string" || !attachment.name.trim()) errors.push("attachment.name is required");
+      if (typeof attachment.type !== "string" || !allowedAttachmentTypes.includes(attachment.type)) {
+        errors.push(`attachment type is not allowed: ${String(attachment.type)}`);
+      }
+      if (!Number.isInteger(attachment.size) || attachment.size <= 0) errors.push("attachment.size must be a positive integer");
+      if (typeof attachment.size === "number" && attachment.size > maxAttachmentBytes) {
+        errors.push(`attachment ${String(attachment.name)} exceeds ${maxAttachmentBytes} bytes`);
+      }
+    }
   }
 
   if (errors.length > 0) return { ok: false, errors };
