@@ -55,6 +55,43 @@ test("rejects zero-byte attachments as non-positive", () => {
   if (!result.ok) assert.deepEqual(result.errors, ["attachment.size must be a positive integer"]);
 });
 
+test("direct validator rejects malformed runtime attachment containers", () => {
+  const base = { project: "p", origin: "https://app.example.com", category: "bug", subject: "Help", message: "Details" };
+  const policy = { project: "p", allowedOrigins: ["https://app.example.com"] };
+
+  for (const attachments of [null, {}, "file.txt"]) {
+    const result = validateSupportRequest({ ...base, attachments } as never, policy);
+    assert.deepEqual(result, { ok: false, errors: ["attachments must be an array when provided"] });
+  }
+});
+
+test("direct validator rejects malformed runtime attachment elements without throwing", () => {
+  const base = { project: "p", origin: "https://app.example.com", category: "bug", subject: "Help", message: "Details" };
+  const policy = { project: "p", allowedOrigins: ["https://app.example.com"] };
+
+  for (const attachment of [null, "file.txt", 42, []]) {
+    const result = validateSupportRequest({ ...base, attachments: [attachment] } as never, policy);
+    assert.deepEqual(result, { ok: false, errors: ["attachments[0] must be an object"] });
+  }
+});
+
+test("direct validator accepts a valid typed attachment", () => {
+  const result = validateSupportRequest(
+    {
+      project: "p",
+      origin: "https://app.example.com",
+      category: "bug",
+      subject: "Help",
+      message: "Details",
+      attachments: [{ name: "details.txt", type: "text/plain", size: 12 }]
+    },
+    { project: "p", allowedOrigins: ["https://app.example.com"] }
+  );
+
+  assert.equal(result.ok, true);
+  if (result.ok) assert.deepEqual(result.value.attachments, [{ name: "details.txt", type: "text/plain", size: 12 }]);
+});
+
 test("origin helper supports exact and wildcard subdomains", () => {
   assert.equal(isOriginAllowed("https://a.example.com", ["*.example.com"]), true);
   assert.equal(isOriginAllowed("https://example.com", ["*.example.com"]), false);
