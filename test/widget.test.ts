@@ -103,6 +103,35 @@ test("widget client converts transport rejection into an error result and event"
   assert.deepEqual(errorPayload, result);
 });
 
+test("widget client converts malformed transport results into one error result and event", async (t) => {
+  const malformedResults = [null, [], {}, { ok: "yes" }, { ok: true, refId: 123 }, { ok: false, errors: "no" }, { ok: false, errors: ["valid", 2] }];
+
+  for (const malformed of malformedResults) {
+    await t.test(JSON.stringify(malformed), async () => {
+      const client = createThreadHelpClient(async () => malformed as never);
+      const errors: unknown[] = [];
+      client.on("error", (payload) => errors.push(payload));
+      client.boot({ project: "p", endpoint: "/api/threadhelp", origin: "https://app.example.com" });
+
+      const result = await client.submit({ category: "question", subject: "Help", message: "Bad response" });
+
+      assert.deepEqual(result, { ok: false, errors: ["ThreadHelp endpoint returned a malformed response."] });
+      assert.deepEqual(errors, [result]);
+    });
+  }
+});
+
+test("widget client preserves valid success and server-error transport results", async (t) => {
+  for (const expected of [{ ok: true, refId: "TH-12345678" }, { ok: false, errors: ["validation failed"] }]) {
+    await t.test(JSON.stringify(expected), async () => {
+      const client = createThreadHelpClient(async () => expected);
+      client.boot({ project: "p", endpoint: "/api/threadhelp", origin: "https://app.example.com" });
+
+      assert.deepEqual(await client.submit({ category: "question", subject: "Help", message: "Valid response" }), expected);
+    });
+  }
+});
+
 test("default widget transport retains invalid-JSON error behavior", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("not JSON", { status: 200 });
@@ -114,6 +143,25 @@ test("default widget transport retains invalid-JSON error behavior", async () =>
     const result = await client.submit({ category: "question", subject: "Help", message: "Bad response" });
 
     assert.deepEqual(result, { ok: false, errors: ["ThreadHelp endpoint returned invalid JSON."] });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("default widget transport rejects malformed 2xx JSON through the error contract", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => Response.json({ ok: "yes" });
+
+  try {
+    const client = createThreadHelpClient();
+    const errors: unknown[] = [];
+    client.on("error", (payload) => errors.push(payload));
+    client.boot({ project: "p", endpoint: "/api/threadhelp", origin: "https://app.example.com" });
+
+    const result = await client.submit({ category: "question", subject: "Help", message: "Bad response" });
+
+    assert.deepEqual(result, { ok: false, errors: ["ThreadHelp endpoint returned a malformed response."] });
+    assert.deepEqual(errors, [result]);
   } finally {
     globalThis.fetch = originalFetch;
   }
