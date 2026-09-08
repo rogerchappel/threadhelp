@@ -92,7 +92,7 @@ export function createThreadHelpClient(transport: ThreadHelpTransport = fetchTra
       const payload = buildWidgetRequest(state.options, { ...state.draft, ...input });
       let result: ThreadHelpSubmitResult;
       try {
-        result = await transport(state.options.endpoint, payload);
+        result = normalizeSubmitResult(await transport(state.options.endpoint, payload));
       } catch (error) {
         const detail = error instanceof Error && error.message ? `: ${error.message}` : ".";
         result = { ok: false, errors: [`ThreadHelp request failed${detail}`] };
@@ -171,6 +171,24 @@ async function fetchTransport(endpoint: string, payload: SupportRequestInput): P
   } catch {
     return { ok: false, errors: ["ThreadHelp endpoint returned invalid JSON."] };
   }
+}
+
+function normalizeSubmitResult(value: unknown): ThreadHelpSubmitResult {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value) ||
+    !("ok" in value) ||
+    typeof value.ok !== "boolean" ||
+    ("refId" in value && value.refId !== undefined && typeof value.refId !== "string") ||
+    ("errors" in value &&
+      value.errors !== undefined &&
+      (!Array.isArray(value.errors) || value.errors.some((error) => typeof error !== "string")))
+  ) {
+    return { ok: false, errors: ["ThreadHelp endpoint returned a malformed response."] };
+  }
+
+  return value as ThreadHelpSubmitResult;
 }
 
 function currentOrigin(): string {
