@@ -116,6 +116,24 @@ The Slack adapter currently formats the initial support request and maps thread 
 
 The first public build intentionally avoids real Slack API calls, token handling, and webhook delivery. Those should be wired by host applications or future adapters with explicit secrets management and tests.
 
+For an HTTP endpoint receiving Slack Events API or interactive requests, verify the request before parsing or processing it. Use Slack's signing secret (not the bot token), the exact raw request body, and the `X-Slack-Request-Timestamp` and `X-Slack-Signature` headers:
+
+```ts
+import { verifySlackRequestSignature } from "threadhelp/adapters/slack";
+
+const rawBody = await readRawRequestBody(request); // Preserve the received body exactly.
+if (!verifySlackRequestSignature({
+  signingSecret: process.env.SLACK_SIGNING_SECRET!,
+  timestamp: request.headers.get("x-slack-request-timestamp") ?? "",
+  signature: request.headers.get("x-slack-signature") ?? "",
+  rawBody
+})) {
+  return new Response("Invalid Slack signature", { status: 401 });
+}
+```
+
+The verifier uses HMAC-SHA256, constant-time comparison, and a five-minute default timestamp window to limit replay. Configure `SLACK_SIGNING_SECRET` from your Slack app's Basic Information page; never expose it to browser clients. Obtain the raw body before JSON/form parsing. The caller remains responsible for request-size limits and preventing duplicate processing within the accepted window.
+
 ## Verify
 
 ```sh
