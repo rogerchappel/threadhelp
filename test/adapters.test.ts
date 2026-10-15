@@ -24,3 +24,19 @@ test("Email adapter formats dry-run payload", async () => {
   assert.equal(email.replyTo, "u@example.com");
   assert.match(email.subject ?? "", /Need help/);
 });
+
+import { createHmac } from "node:crypto";
+import { verifySlackRequestSignature } from "../src/adapters/slack.js";
+
+test("Slack signature verification accepts fresh exact-body signatures and rejects invalid or stale requests", () => {
+  const signingSecret = "test-signing-secret";
+  const timestamp = "1700000000";
+  const rawBody = "token=fixture&text=hello%20world";
+  const signature = `v0=${createHmac("sha256", signingSecret).update(`v0:${timestamp}:${rawBody}`).digest("hex")}`;
+  const now = 1700000000 * 1000;
+  assert.equal(verifySlackRequestSignature({ signingSecret, timestamp, signature, rawBody, now }), true);
+  assert.equal(verifySlackRequestSignature({ signingSecret, timestamp, signature, rawBody: `${rawBody}&changed=1`, now }), false);
+  assert.equal(verifySlackRequestSignature({ signingSecret, timestamp, signature: "v0=" + "0".repeat(64), rawBody, now }), false);
+  assert.equal(verifySlackRequestSignature({ signingSecret, timestamp, signature, rawBody, now: now + 6 * 60 * 1000 }), false);
+  assert.equal(verifySlackRequestSignature({ signingSecret, timestamp: "not-a-time", signature, rawBody, now }), false);
+});
